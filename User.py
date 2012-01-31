@@ -1,9 +1,12 @@
 from Tag import Tag, WikipediaArticle
 
-Users = []
-idleUsers = []
+users = {}
+idleUsers = {}
 
 class User:
+    users = {}
+    idleUsers = {}
+
     def __init__(self, name, pwd):
         self.name = name
         self.pwd = pwd
@@ -13,25 +16,47 @@ class User:
         self.socket = 0
 
     def upVote(self, target):
-        target.karma += 5*self.karma
+        """
+        Allows a user to increase the karma of another user. The amount of
+        influence (the affect they have on another user's karma) is directly
+        related to the karma of the voter.
+        Takes one argument of type User.
+        """
+        target.karma += 5*self.karma/100
 
     def downVote(self, target):
-        target.karma -= 5*self.karma
-        if target.karma <= 1:
-            target.karma = 1
+        """
+        Allows a user to decrease the karma of another user. Like upVote,
+        the amount of influence the voter has is directly related to the
+        voter's karma.
+        Takes one argument of type User.
+        """
+        target.karma -= 5*self.karma/100
 
     def addTag(self, tag):
-        #Takes a string argument
+        """
+        Adds an interest tag (ie. "physics" or "dogs") to a user's list of
+        interests.
+        Takes one argument of type Tag.
+        """
         self.tags.add(Tag(tag))
 
     def removeTag(self, tag):
-        #Takes a Tag argument
+        """
+        Removes an interest tag from the user's interest list.
+        Takes one argument of type Tag.
+        """
         try:
             self.tags.remove(tag)
         except KeyError as e:
             print("You don't have that tag!")
 
     def tagMatch(self, user):
+        '''
+        Calculates the "match score" (arbitrary ranking system) based on
+        similarities of two Users' interests.
+        Takes one argument of type User.
+        '''
         points = 0
         similarities = 0
         for self_tag in self.tags:
@@ -43,88 +68,80 @@ class User:
         return points/similarities
 
     def karmaMatch(self, user):
-        score = 3-(1/100)*(abs(self.karma - user.karma))
+        """
+        Calculates the "match score" based on the similarities of two Users'
+        karma points. This is to ensure that the well behaved Users are
+        rewarded by getting matched with a generally more well behaved
+        user base that one person who is less liked.
+        Takes one argument of type User.
+        """
+        score = 3*(1/100)*(abs(self.karma - user.karma))
         if score <= 0:
             return 0
         else:
             return score
 
     def compatibility(self, user):
-            return self.tagMatch(user)+self.karmaMatch(user)
+        """
+        Combines the match scores of the two users and returns the final
+        "compatibility score."
+        Takes one argument of type User.
+        """
+        return self.tagMatch(user)+self.karmaMatch(user)
+
+
 
 def findMatch(client):
+    """
+    Method used by the server to find the best match for a client. Returns
+    the User with the best match score of the client.
+    Takes one argument of type User.
+    """
     maxscore = 0
     bestmatch = None
     for user in idleUsers:
         if client.name != user.name:
-            score = client.compatibility(match)
+            score = client.compatibility(user)
             if score > maxscore:
                 maxscore = score
                 bestmatch = user
     return bestmatch
 
 def findFromSocket(socket):
-    for user in Users:
+    """
+    Returns a user based on the socket number.
+    Takes one argument of type Socket.
+    """
+    for user in User.users:
         if user.socket == socket:
             return user
 
 def findFromIP(ip):
-    for user in Users:
+    """
+    Retures a user based on the IP number
+    Takes one argument of type String
+    """
+    for user in User.users:
         if user.ip == ip:
             return user
 
 def addUser(user):
-    Users.append(user)
+    """
+    Adds a user to the list of active users.
+    Takes one argument of type User.
+    """
+    User.users.add(user)
 
 def addIdleUser(user):
-    idleUsers.append(user)
+    """
+    Adds a user to the list of inactive users.
+    Takes one argument of type User.
+    """
+    User.idleUsers.add(user)
 
 def removeIdleUser(user):
-    return 0
-'''
-#Testing
-science = Tag('science')
-physics = Tag('physics')
-dog = Tag('dog')
-cat = Tag('cat')
-print("Testing if science is similar to physics")
-print(science.similarityTo(physics))
-
-rz = User('richie','123')
-tejas = User('tejas','123')
-
-rz.addTag('science')
-rz.addTag('dog')
-rz.upVote(tejas)
-tejas.addTag('physics')
-tejas.addTag('cat')
-idleUsers.append(tejas)
-print("Creating two users, richie and tejas")
-print("Match points from related interests")
-print(rz.tagMatch(tejas))
-print("Match points from karma")
-print(rz.karmaMatch(tejas))
-print("Total compatibility")
-print(rz.compatibility(tejas))
-'''
-print("Give interests for person1")
-p1 = User('person1','123')
-p1.addTag(raw_input())
-p1.addTag(raw_input())
-p1.addTag(raw_input())
-
-print("Give interests for person2")
-p2 = User('person2','123')
-p2.addTag(raw_input())
-p2.addTag(raw_input())
-p2.addTag(raw_input())
-
-print("Calculating compatibility...")
-print(p1.compatibility(p2))
-'''
-#TESTING TAG COMPARISON
-tag1 = raw_input()
-tag2 = raw_input()
-print("Testing compatibility...")
-print(Tag(tag1).similarityTo(Tag(tag2)))
-'''
+    """
+    Removes a User from the list of inactive users.
+    Takes one argument of type User.
+    """
+    User.idleUsers.remove(user)
