@@ -1,0 +1,16 @@
+This is a chat system that matches strangers to each other and lets them chat.
+Strangers are matched based on their interests and their karma points. Users
+can increase the karma of their chatting partner if they enjoyed the
+conversation and lower the karma if their chatting partner was obscene, rude,
+naked, etc.
+
+
+Interest Matching System (Wikipedia Based)
+Matches the interests of two people. Assigns "match" points based on how close
+the interests are. To compare two tags, our system looks at one tag (eg.
+physics) and looks at the Wikipedia page of another tag (eg. science). The
+system parses the wikipedia page and looks at the words on the page. If the
+page of the first tag (physics) sees the word of the second tag (science), it
+looks at the Wiki page of the second tag to see the reverse is true (the word
+physics is found on the science page). This backwards checking is implemented
+to reduce noise coming from unrelated words on the Wiki page.
